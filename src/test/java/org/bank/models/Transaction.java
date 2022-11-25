@@ -1,9 +1,5 @@
 package org.bank.models;
 
-import static io.restassured.RestAssured.*;
-
-import static io.restassured.RestAssured.given;
-
 public class Transaction {
     private int id;
     private String name;
@@ -86,8 +82,6 @@ public class Transaction {
         return accountNumber;
     }
 
-
-
     /**
      * gets the value of the amount attribute
      *
@@ -141,6 +135,7 @@ public class Transaction {
     public String getTelephone() {
         return telephone;
     }
+
 }
 
 

@@ -2,10 +2,13 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 <suite name="Suite: Globant Bank">
 
-    <!--<parameter name="url" value="https://637ba6b272f3ce38ea9192b4.mockapi.io/"/>-->
+    <listeners>
+        <listener class-name = "org.bank.util.Listener"/>
+    </listeners>
 
     <test thread-count="1" name="Test: Bank Transactions">
         <classes>
+            <class name="org.bank.tests.BankTransactionsTest"> </class>
         </classes>
     </test> <!-- Test -->
 </suite> <!-- Suite -->

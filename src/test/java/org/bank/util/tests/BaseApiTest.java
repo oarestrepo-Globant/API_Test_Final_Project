@@ -1,9 +1,9 @@
 package org.bank.util.tests;
 
-
 import static io.restassured.RestAssured.*;
 import static io.restassured.http.ContentType.JSON;
 
+import com.github.javafaker.Faker;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.apache.log4j.Logger;
@@ -12,36 +12,53 @@ import org.bank.util.RestAssuredUtil;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Base test for API tests.
+ * @author oscar.restrepo
  */
 public class BaseApiTest extends RestAssuredUtil{
     protected Response response = null;
-    //protected JsonPath jasonPath = null;
     protected static List<Transaction> allTransactions;
     public Logger log = Logger.getLogger(BaseApiTest.class);
 
-    /**
-     * initializes the initial setUp.
-     * Define baseURI, contentType("application/json") and get all transactions.
-     *
+    @DataProvider(name = "idTransaction")
+    public Object[][] getUsersLoginData() {
+        return new Object[][]{{"1"}};
+    }
+
+   /**
+     * initializes the initial setUp before class.
+    * @author oscar.restrepo
      * */
     @BeforeClass
     public void setup() {
-        //Test Setup
-        RestAssuredUtil.setBaseURI(); //Setup Base URI
-       // RestAssuredUtil.setBasePath("transactions"); //Setup Base Path
-        RestAssuredUtil.setContentType(JSON); //Setup Content Type
+        RestAssuredUtil.setBaseURI();
+        RestAssuredUtil.setContentType(JSON);
+    }
+
+    /**
+     * get all transaction before each  method.
+     * @author oscar.restrepo
+     * */
+    @BeforeMethod
+    public void beforeMethod() {
         allTransactions = getAllTransactions();
     }
 
     /**
+     * delete all transactions after each method.
+     * @author oscar.restrepo
+     * */
+    @AfterMethod
+    public void afterMethod(){
+        allTransactions = null;
+    }
+
+    /**
      * after class resets the baseURL and the basePath.
+     * @author oscar.restrepo
      **/
     @AfterClass
     public void afterTest() {
@@ -53,8 +70,9 @@ public class BaseApiTest extends RestAssuredUtil{
     /**
      * Verify that the status code returned is equal to the expected status code.
      * @param statusCodeExpected:res
+     * @author oscar.restrepo
      * */
-    public void checkStatusCode(Response res, int statusCodeExpected) {
+    protected void assertStatusCode(Response res, int statusCodeExpected) {
         Assert.assertEquals(res.getStatusCode(), statusCodeExpected, "Status Check Failed!");
     }
 
@@ -62,12 +80,7 @@ public class BaseApiTest extends RestAssuredUtil{
      * get all transactions, deserialize JSON Array to List and return that list
      * @author oscar.restrepo
      * */
-    public  List<Transaction> getAllTransactions(){
-       /* RestAssured.baseURI =  "https://637ba6b272f3ce38ea9192b4.mockapi.io/";
-
-        RequestSpecification httpRequest = RestAssured.given();
-        Response response = httpRequest.get();*/
-
+    protected  List<Transaction> getAllTransactions(){
         response = getResponse();
         JsonPath jsonPathEvaluator = response.jsonPath();
 
@@ -78,27 +91,13 @@ public class BaseApiTest extends RestAssuredUtil{
     }
 
     /**
-     * evaluates whether the endpoint has data and return true if it has data, otherwise return false.
-     * @author oscar.restrepo
-     * */
-    public boolean isEndpointEmpty(){
-
-        return allTransactions.size() == 0;
-    }
-
-    /**
-     * delete transaction.
+     * delete specific transaction by given id.
      *
      * @param id:int
      * @author oscar.restrepo
      * */
-    public void deleteTransaction(int id){
+    protected void deleteTransaction(int id){
         Response response1 =
-                /*given().
-                contentType(JSON).
-
-                        when().
-                delete("https://637ba6b272f3ce38ea9192b4.mockapi.io/transactions/2");*/
            deleteResponse(baseURI+id);
 
         response1.then().
@@ -112,12 +111,11 @@ public class BaseApiTest extends RestAssuredUtil{
      *
      * @author oscar.restrepo
      * */
-    public boolean deleteAllTransactions(){
+    protected boolean deleteAllTransactions(){
 
         if(allTransactions.size() != 0){
-            for (Transaction transaction:allTransactions) {
-                deleteTransaction(transaction.getId());
-            }
+
+            allTransactions.forEach(transaction -> deleteTransaction(transaction.getId()));
         }
 
         response = deleteResponse(baseURI);
@@ -132,42 +130,79 @@ public class BaseApiTest extends RestAssuredUtil{
      *
      * @author oscar.restrepo
      */
-    public boolean areDuplicateEmailsAccount() {
-       List<String> emailsAccounts = new ArrayList<>();
-       allTransactions = getAllTransactions();
+    protected boolean areDuplicateEmailsAccount() {
+        List<String> emailsAccounts = new ArrayList<>();
 
-        for (Transaction transaction:allTransactions) {
-           if(!emailsAccounts.contains(transaction.getEmail())){
-               emailsAccounts.add(transaction.getEmail());
-           }
-        }
+        allTransactions = getAllTransactions();
 
-        response = getResponse(baseURI);
+        allTransactions.forEach(transaction -> {
+            if(!emailsAccounts.contains(transaction.getEmail())){
+                emailsAccounts.add(transaction.getEmail());
+            }
+        });
+
         return allTransactions.size() != emailsAccounts.size();
     }
 
     /**
-     * Make the GET request, asserting that there are not duplicate email accounts
-     * @param id:int
-     * @param newAccountNumber:String
-     *
+     *@return a list of 10 Transaction instances with data generated by javaFaker
      * @author oscar.restrepo
      */
-    public void updateExistingAccountNumber(int id, String newAccountNumber) {
-        Map<String, String> transaction = new HashMap<>();
-        transaction.put("accountNumber", newAccountNumber);
+    protected ArrayList<Transaction> createTenRandomTransactions(){
+        ArrayList<Transaction> newTransactions= new ArrayList<>();
+        Faker fake = Faker.instance(Locale.forLanguageTag("en-US"));
 
-        response =  putResponse(baseURI+id,transaction);
-       ;
+        for (int i = 0; i < 10; i++) {
+            newTransactions.add(new Transaction(
+                    fake.name().firstName(),
+                    fake.name().lastName(),
+                    fake.number().numberBetween(100,9999999),
+                    fake.number().randomDouble(2, 10, 100000000),
+                    fake.options().option("invoice","withdrawal","deposit","payment"),
+                    fake.internet().emailAddress(),
+                    fake.random().nextBoolean(),
+                    fake.country().name(),
+                    fake.phoneNumber().phoneNumber()
+            ));
+        }
+        return newTransactions;
     }
 
     /**
-     * creates a new transaction and makes a post to the endpoint.
+     * Verifies that there are no repeated emails in a Transaction list.
+     * Performs a POST with the Transactions that do not have repeated mails
+     *
+
+     * @author oscar.restrepo
+     */
+    protected void postTransactions(){
+        List<String> emailsAccounts = new ArrayList<>();
+        List<Transaction> fakeTransaction = createTenRandomTransactions();
+
+        fakeTransaction.forEach(transaction -> {
+            if(!emailsAccounts.contains(transaction.getEmail())){
+                emailsAccounts.add(transaction.getEmail());
+                response = postResponse(baseURI, transaction);
+                log.info("Post transaction in endpoint");
+            }
+        });
+    }
+
+    /**
+     * update the account number of a specific transaction given a transaction id.
+     *
+     * @param idTransaction:int
      *
      * @author oscar.restrepo
      */
-    public void createRandomTransaction(){
-        Map<String, String> transaction = new HashMap<>();
-       response = postResponse(baseURI, transaction);
-    }
+    protected void updateExistingAccountNumber(String idTransaction) {
+
+        Faker fake = Faker.instance(Locale.forLanguageTag("en-US"));
+        int newAccount = fake.number().numberBetween(10,9999999);
+
+        Map<String, Integer> transaction = new HashMap<>();
+        transaction.put("accountNumber", newAccount);
+
+        response = putResponse(baseURI + idTransaction, transaction);
+     }
 }

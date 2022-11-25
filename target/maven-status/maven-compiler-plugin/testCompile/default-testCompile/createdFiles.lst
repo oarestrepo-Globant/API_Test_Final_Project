@@ -1,4 +1,4 @@
-org\bank\tests\Prueaba.class
+org\bank\tests\Prueba.class
+org\bank\models\Transaction.class
 org\bank\util\tests\BaseApiTest.class
-org\bank\models\User.class
 org\bank\util\RestAssuredUtil.class
