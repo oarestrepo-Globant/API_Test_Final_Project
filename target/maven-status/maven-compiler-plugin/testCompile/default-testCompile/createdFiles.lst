@@ -1,4 +1,0 @@
-org\bank\tests\Prueba.class
-org\bank\models\Transaction.class
-org\bank\util\tests\BaseApiTest.class
-org\bank\util\RestAssuredUtil.class
