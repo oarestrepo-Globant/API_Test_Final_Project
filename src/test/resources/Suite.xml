@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 <suite name="Suite: Globant Bank">
+
+    <!--<parameter name="url" value="https://637ba6b272f3ce38ea9192b4.mockapi.io/"/>-->
+
     <test thread-count="1" name="Test: Bank Transactions">
         <classes>
         </classes>
