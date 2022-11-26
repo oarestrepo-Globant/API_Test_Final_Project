@@ -10,7 +10,7 @@ The test is designed in a single test class called "BankTransacionTest" with 4 d
  The installation is very simple, just follow these instructions
  - Clone the repo in local directory
  - To install dependencies type the following command in the terminal: mvn clean install -DskipTests
- - You can run the test by executing the Suite.xml file or the BankTransactionsTest file.
+ - You can run the test by executing the Suite.xml file or the BankTransactionsTest.class file.
  <br>
  
  ## CONSIDERATIONS
